@@ -1,10 +1,9 @@
 <!DOCTYPE html>
-<html >
+<html>
 	<head>
-		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
-	  <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.css">
-
-			<style>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+	<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.css">
+	<style>
 
 		.cont {
 			background: pink;
@@ -90,207 +89,201 @@
 			width: 100%;
 			height: 100px;
 		}
-		
-
 	</style>
-		</head>
-		<body>
-			<div class="form-group purple-border">
-				<label for="exampleFormControlTextarea4">Enter text </label>
-				</br>
-				<textarea class="form-control" id="textInput" rows="3" ></textarea>
-				</br>
+	</head>
+	<body>
+		<div class="form-group purple-border">
+			<label for="exampleFormControlTextarea4">Enter text </label>
+			</br>
+			<textarea class="form-control" id="textInput" rows="3" ></textarea>
+			</br>
 				<button onclick="generate()">Generate</button>
 				<button onclick="shuffle(dict)">Shuffle</button>
 				<button onclick="shuffleColor(dict)">Shuffle Color</button>
+			</br>
+		</div>
+		<div class="cont" id="main" ></div>
+	</body>
+	<script>
+		//Splitting();
+		var dict ;
+		var filled_areas = new Array();
 
+		var total=0
+			var colours = [
+			"red",
+			"orange",
+			"black",
+			"green",
+			"blue",
+			"purple" ,
+			"magenta",
+			"indigo",
+			"violet",
+			"brown",
+			"maroon",
+			"grey"
+			];
+			var anim=[
+			"rubberband",
+			"jello",
+			"wobble",
+			"swing",
+			"bounceIn",
+			"flip",
+			"ZoomIn",
+			"flash",
+			"pulse",
+			"shake",
+			"tada"
+			]
+			var min_x = 10;
+			var max_x = 1000;
+			var min_y = 160;
+			var max_y = 710;
+			var buff=0
+	
+			function generate()
+			{
+				text=document.getElementById("textInput").value;
+				document.getElementById("textInput").value="";
+				fetch('/hello', {
 
-				</br>
-			</div>
-			<div class="cont" id="main" ></div>
-		</body>
-<script>
-	//Splitting();
-	var dict ;
-	var filled_areas = new Array();
+				// Declare what type of data we're sending
+				headers: {
+				  'Content-Type': 'application/json'
+				},
 
-	var total=0
-		var colours = [
-		"red",
-		"orange",
-		"black",
-		"green",
-		"blue",
-		"purple" ,
-		"magenta",
-		"indigo",
-		"violet",
-		"brown",
-		"maroon",
-		"grey"
-		];
-		var anim=[
-		"rubberband",
-		"jello",
-		"wobble",
-		"swing",
-		"bounceIn",
-		"flip",
-		"ZoomIn",
-		"flash",
-		"pulse",
-		"shake",
-		"tada"
-		]
-		var min_x = 10;
-		var max_x = 1000;
-		var min_y = 160;
-		var max_y = 710;
-		var buff=0
-		
-		function generate()
-		{
-			text=document.getElementById("textInput").value;
-			document.getElementById("textInput").value="";
-			fetch('/hello', {
+				// Specify the method
+				method: 'POST',
+				// A JSON payload
+				body: JSON.stringify({
+					text
+				})
+				}).then(function (response) { // At this point, Flask has printed our JSON
+					return response.text();
+				}).then(function (json) {
 
-			// Declare what type of data we're sending
-			headers: {
-			  'Content-Type': 'application/json'
-			},
+					console.log('POST response: ');
 
-			// Specify the method
-			method: 'POST',
-			// A JSON payload
-			body: JSON.stringify({
-				text
+					// Should be 'OK' if everything was successful
+					console.log(json);
+					var JSONObject = JSON.parse(json);
+					dict=JSONObject["dict"];
+					dict=sort_object(dict)
+					shuffle(dict)
+				});
+			}
+
+			fetch('/hello')
+			.then(function (response) {
+				return response.json(); // But parse it as JSON this time
 			})
-		}).then(function (response) { // At this point, Flask has printed our JSON
-			return response.text();
-		}).then(function (json) {
-
-			console.log('POST response: ');
-
-			// Should be 'OK' if everything was successful
-			console.log(json);
-			var JSONObject = JSON.parse(json);
-			dict=JSONObject["dict"];
-			dict=sort_object(dict)
-			shuffle(dict)
-		});
-		}
-
-		fetch('/hello')
-		.then(function (response) {
-			return response.json(); // But parse it as JSON this time
-		})
-		.then(function (json) {
-			dict=json.dict;
-			dict=sort_object(dict)
-			shuffle(dict)
-		});
-		
-		function check_overlap(area) {
-			//console.log(filled_areas)
-			for (var i = 0; i < filled_areas.length; i++) {
-				
-				check_area = filled_areas[i];
-				
-				var bottom1 = area.y + area.height+buff;
-				var bottom2 = check_area.y + check_area.height+buff;
-				var top1 = area.y+buff;
-				var top2 = check_area.y+buff;
-				var left1 = area.x+buff;
-				var left2 = check_area.x+buff;
-				var right1 = area.x + area.width+buff;
-				var right2 = check_area.x + check_area.width+buff;
-				if (bottom1 < top2 || top1 > bottom2 || right1 < left2 || left1 > right2) {
-					continue;
-				}
-				return true;
-			}
-			return false;
-		}
-		function highlight(x) {
-			x.setAttribute("data-title",dict[x.textContent]+"%");	
-		}
-		function sort_object(obj) {
-			items = Object.keys(obj).map(function(key) {
-				return [key, obj[key]];
+			.then(function (json) {
+				dict=json.dict;
+				dict=sort_object(dict)
+				shuffle(dict)
 			});
-			items.sort(function(first, second) {
-				return second[1] - first[1];
-			});
-			sorted_obj={}
-			$.each(items, function(k, v) {
-				use_key = v[0]
-				use_value = v[1]
-				sorted_obj[use_key] = use_value
-			})
-			return(sorted_obj)
-		} 
-		function shuffle(dict)
-		{
-		
-			filled_areas = new Array();
-			parent=document.getElementById("main");
-			while (parent.firstChild) {
-				parent.removeChild(parent.firstChild);
-			}
-			var animIndex = Math.floor(Math.random() * anim.length);
-			for (var k in dict) {
-				console.log(k)
-				var span = document.createElement("span");
-				var text = document.createTextNode(k);
-				var colourIndex = Math.floor(Math.random() * colours.length);
-				span.setAttribute("style","font-size: "+(dict[k]+15)+"px;color:"+colours[colourIndex]);
-				span.setAttribute("onmouseover","highlight(this)");
-				span.setAttribute("class","tooltip expand animated "+anim[animIndex]+"  animate__slower ");
-				span.appendChild(text);
-				parent.appendChild(span);
-				
-				total=total+=dict[k]
-			}
-			$('span').each(function(index) {
-			var rand_x=0;
-			var rand_y=0;
-			var area;
-			count=0
-			do {
-				console.log("doing")
-				rand_x = Math.round(min_x + ((max_x - min_x)*(Math.random() % 1)));
-				rand_y = Math.round(min_y + ((max_y - min_y)*(Math.random() % 1)));
-				if ((index+1)%5==0)
-				{
-					area = {x: rand_x, y: rand_y, width: $(this).height(), height: $(this).width()};
-				}
-				else
-				{
-					area = {x: rand_x, y: rand_y, width: $(this).width(), height: $(this).height()};
-
-				}
-				count++;
-				if (count>2000)
-					break
-			} while(check_overlap(area));
 			
-			filled_areas.push(area);
-			if ((index+1)%5==0)
-				$(this).css({left:rand_x, top: rand_y,'writing-mode': 'vertical-rl'});
-			else
-				$(this).css({left:rand_x, top: rand_y});
-			});
-		}
-		
-		function shuffleColor()
-		{
-		
-			$('span').each(function(index) {
-				var colourIndex = Math.floor(Math.random() * colours.length);
-				$(this).css({'color':colours[colourIndex]});
-			});
-		}
-		
-		
-		
-</script></html>
+			function check_overlap(area) {
+				//console.log(filled_areas)
+				for (var i = 0; i < filled_areas.length; i++) {
+					
+					check_area = filled_areas[i];
+					
+					var bottom1 = area.y + area.height+buff;
+					var bottom2 = check_area.y + check_area.height+buff;
+					var top1 = area.y+buff;
+					var top2 = check_area.y+buff;
+					var left1 = area.x+buff;
+					var left2 = check_area.x+buff;
+					var right1 = area.x + area.width+buff;
+					var right2 = check_area.x + check_area.width+buff;
+					if (bottom1 < top2 || top1 > bottom2 || right1 < left2 || left1 > right2) {
+						continue;
+					}
+					return true;
+				}
+				return false;
+			}
+			function highlight(x) {
+				x.setAttribute("data-title",dict[x.textContent]+"%");	
+			}
+			function sort_object(obj) {
+				items = Object.keys(obj).map(function(key) {
+					return [key, obj[key]];
+				});
+				items.sort(function(first, second) {
+					return second[1] - first[1];
+				});
+				sorted_obj={}
+				$.each(items, function(k, v) {
+					use_key = v[0]
+					use_value = v[1]
+					sorted_obj[use_key] = use_value
+				})
+				return(sorted_obj)
+			} 
+			function shuffle(dict)
+			{
+			
+				filled_areas = new Array();
+				parent=document.getElementById("main");
+				while (parent.firstChild) {
+					parent.removeChild(parent.firstChild);
+				}
+				var animIndex = Math.floor(Math.random() * anim.length);
+				for (var k in dict) {
+					console.log(k)
+					var span = document.createElement("span");
+					var text = document.createTextNode(k);
+					var colourIndex = Math.floor(Math.random() * colours.length);
+					span.setAttribute("style","font-size: "+(dict[k]+15)+"px;color:"+colours[colourIndex]);
+					span.setAttribute("onmouseover","highlight(this)");
+					span.setAttribute("class","tooltip expand animated "+anim[animIndex]+"  animate__slower ");
+					span.appendChild(text);
+					parent.appendChild(span);
+					
+					total=total+=dict[k]
+				}
+				$('span').each(function(index) {
+				var rand_x=0;
+				var rand_y=0;
+				var area;
+				count=0
+				do {
+					console.log("doing")
+					rand_x = Math.round(min_x + ((max_x - min_x)*(Math.random() % 1)));
+					rand_y = Math.round(min_y + ((max_y - min_y)*(Math.random() % 1)));
+					if ((index+1)%5==0)
+					{
+						area = {x: rand_x, y: rand_y, width: $(this).height(), height: $(this).width()};
+					}
+					else
+					{
+						area = {x: rand_x, y: rand_y, width: $(this).width(), height: $(this).height()};
+
+					}
+					count++;
+					if (count>2000)
+						break
+				} while(check_overlap(area));
+				
+				filled_areas.push(area);
+				if ((index+1)%5==0)
+					$(this).css({left:rand_x, top: rand_y,'writing-mode': 'vertical-rl'});
+				else
+					$(this).css({left:rand_x, top: rand_y});
+				});
+			}
+			
+			function shuffleColor()
+			{
+			
+				$('span').each(function(index) {
+					var colourIndex = Math.floor(Math.random() * colours.length);
+					$(this).css({'color':colours[colourIndex]});
+				});
+			}
+	</script>
+</html>
