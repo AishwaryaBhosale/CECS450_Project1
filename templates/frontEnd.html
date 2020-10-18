@@ -3,10 +3,11 @@
 	<head>
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
 	<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.css">
+	<link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Varela+Round" />
 	<style>
 
 		.cont {
-			background: pink;
+			background: rgb(45 42 42 / 1);
 			width: 100%;
 			height: 700px;
 			//position:relative;
@@ -89,6 +90,31 @@
 			width: 100%;
 			height: 100px;
 		}
+	  .btn{
+		color: #fff;
+		background-color: #5cb85c;
+		border-color: #4cae4c;
+		display: inline-block;
+		margin-bottom: 0;
+		font-weight: 400;
+		text-align: center;
+		white-space: nowrap;
+		vertical-align: middle;
+		-ms-touch-action: manipulation;
+		touch-action: manipulation;
+		cursor: pointer;
+		background-image: none;
+		border: 1px solid transparent;
+		padding: 6px 12px;
+		font-size: 14px;
+		line-height: 1.42857143;
+		border-radius: 4px;
+		-webkit-user-select: none;
+		-moz-user-select: none;
+		-ms-user-select: none;
+		user-select: none;
+	  }
+	
 	</style>
 	</head>
 	<body>
@@ -97,34 +123,29 @@
 			</br>
 			<textarea class="form-control" id="textInput" rows="3" ></textarea>
 			</br>
-				<button onclick="generate()">Generate</button>
-				<button onclick="shuffle(dict)">Shuffle</button>
-				<button onclick="shuffleColor(dict)">Shuffle Color</button>
+			</br>
+				<button onclick="generate()" class="btn">Generate</button>
+				<button onclick="shuffle(dict)" class="btn">Shuffle</button>
+				<button onclick="shuffleColor(dict)" class="btn">Shuffle Color</button>
+			</br>
 			</br>
 		</div>
 		<div class="cont" id="main" ></div>
 	</body>
 	<script>
-		//Splitting();
 		var dict ;
 		var filled_areas = new Array();
-
 		var total=0
-			var colours = [
-			"red",
-			"orange",
-			"black",
-			"green",
-			"blue",
-			"purple" ,
-			"magenta",
-			"indigo",
-			"violet",
-			"brown",
-			"maroon",
-			"grey"
-			];
-			var anim=[
+		var colours=[
+			"#03a9f4",
+			"#Fb8c00",
+			"#E91e63",
+			"#8bc34a",
+			"#9c27b0",
+			"#26a69a",
+			"#Ffeb3b",
+			"#00897b"];
+		var anim=[
 			"rubberband",
 			"jello",
 			"wobble",
@@ -137,153 +158,199 @@
 			"shake",
 			"tada"
 			]
-			var min_x = 10;
-			var max_x = 1000;
-			var min_y = 160;
-			var max_y = 710;
-			var buff=0
-	
-			function generate()
-			{
-				text=document.getElementById("textInput").value;
-				document.getElementById("textInput").value="";
-				fetch('/hello', {
+		var min_x = 10;
+		var max_x = 1100;
+		var min_y = 220;
+		var max_y = 750;
+		var buff=0
 
-				// Declare what type of data we're sending
-				headers: {
-				  'Content-Type': 'application/json'
-				},
+		function generate()
+		{
+			text=document.getElementById("textInput").value;
+			document.getElementById("textInput").value="";
+			fetch('/hello', {
 
-				// Specify the method
-				method: 'POST',
-				// A JSON payload
-				body: JSON.stringify({
-					text
-				})
-				}).then(function (response) { // At this point, Flask has printed our JSON
-					return response.text();
-				}).then(function (json) {
+			// Declare what type of data we're sending
+			headers: {
+			  'Content-Type': 'application/json'
+			},
 
-					console.log('POST response: ');
-
-					// Should be 'OK' if everything was successful
-					console.log(json);
-					var JSONObject = JSON.parse(json);
-					dict=JSONObject["dict"];
-					dict=sort_object(dict)
-					shuffle(dict)
-				});
-			}
-
-			fetch('/hello')
-			.then(function (response) {
-				return response.json(); // But parse it as JSON this time
+			// Specify the method
+			method: 'POST',
+			// A JSON payload
+			body: JSON.stringify({
+				text
 			})
-			.then(function (json) {
-				dict=json.dict;
+			}).then(function (response) { // At this point, Flask has printed our JSON
+				return response.text();
+			}).then(function (json) {
+
+				console.log('POST response: ');
+
+				// Should be 'OK' if everything was successful
+				console.log(json);
+				var JSONObject = JSON.parse(json);
+				dict=JSONObject["dict"];
 				dict=sort_object(dict)
 				shuffle(dict)
 			});
-			
-			function check_overlap(area) {
-				//console.log(filled_areas)
-				for (var i = 0; i < filled_areas.length; i++) {
-					
-					check_area = filled_areas[i];
-					
-					var bottom1 = area.y + area.height+buff;
-					var bottom2 = check_area.y + check_area.height+buff;
-					var top1 = area.y+buff;
-					var top2 = check_area.y+buff;
-					var left1 = area.x+buff;
-					var left2 = check_area.x+buff;
-					var right1 = area.x + area.width+buff;
-					var right2 = check_area.x + check_area.width+buff;
-					if (bottom1 < top2 || top1 > bottom2 || right1 < left2 || left1 > right2) {
-						continue;
-					}
-					return true;
-				}
-				return false;
-			}
-			function highlight(x) {
-				x.setAttribute("data-title",dict[x.textContent]+"%");	
-			}
-			function sort_object(obj) {
-				items = Object.keys(obj).map(function(key) {
-					return [key, obj[key]];
-				});
-				items.sort(function(first, second) {
-					return second[1] - first[1];
-				});
-				sorted_obj={}
-				$.each(items, function(k, v) {
-					use_key = v[0]
-					use_value = v[1]
-					sorted_obj[use_key] = use_value
-				})
-				return(sorted_obj)
-			} 
-			function shuffle(dict)
-			{
-			
-				filled_areas = new Array();
-				parent=document.getElementById("main");
-				while (parent.firstChild) {
-					parent.removeChild(parent.firstChild);
-				}
-				var animIndex = Math.floor(Math.random() * anim.length);
-				for (var k in dict) {
-					console.log(k)
-					var span = document.createElement("span");
-					var text = document.createTextNode(k);
-					var colourIndex = Math.floor(Math.random() * colours.length);
-					span.setAttribute("style","font-size: "+(dict[k]+15)+"px;color:"+colours[colourIndex]);
-					span.setAttribute("onmouseover","highlight(this)");
-					span.setAttribute("class","tooltip expand animated "+anim[animIndex]+"  animate__slower ");
-					span.appendChild(text);
-					parent.appendChild(span);
-					
-					total=total+=dict[k]
-				}
-				$('span').each(function(index) {
-				var rand_x=0;
-				var rand_y=0;
-				var area;
-				count=0
-				do {
-					console.log("doing")
-					rand_x = Math.round(min_x + ((max_x - min_x)*(Math.random() % 1)));
-					rand_y = Math.round(min_y + ((max_y - min_y)*(Math.random() % 1)));
-					if ((index+1)%5==0)
-					{
-						area = {x: rand_x, y: rand_y, width: $(this).height(), height: $(this).width()};
-					}
-					else
-					{
-						area = {x: rand_x, y: rand_y, width: $(this).width(), height: $(this).height()};
+		}
 
-					}
-					count++;
-					if (count>2000)
-						break
-				} while(check_overlap(area));
+		fetch('/hello')
+		.then(function (response) {
+			return response.json(); // But parse it as JSON this time
+		})
+		.then(function (json) {
+			dict=json.dict;
+			dict=sort_object(dict)
+			shuffle(dict)
+		});
+		
+		function check_overlap(area) {
+			//console.log(filled_areas)
+			for (var i = 0; i < filled_areas.length; i++) {
 				
-				filled_areas.push(area);
+				check_area = filled_areas[i];
+				
+				var bottom1 = area.y + area.height+buff;
+				var bottom2 = check_area.y + check_area.height+buff;
+				var top1 = area.y+buff;
+				var top2 = check_area.y+buff;
+				var left1 = area.x+buff;
+				var left2 = check_area.x+buff;
+				var right1 = area.x + area.width+buff;
+				var right2 = check_area.x + check_area.width+buff;
+				if (bottom1 < top2 || top1 > bottom2 || right1 < left2 || left1 > right2) {
+					continue;
+				}
+				return true;
+			}
+			return false;
+		}
+		function highlight(x) {
+			x.setAttribute("data-title",dict[x.textContent]+"%");	
+		}
+		function sort_object(obj) {
+			items = Object.keys(obj).map(function(key) {
+				return [key, obj[key]];
+			});
+			items.sort(function(first, second) {
+				return second[1] - first[1];
+			});
+			sorted_obj={}
+			$.each(items, function(k, v) {
+				use_key = v[0]
+				use_value = v[1]
+				sorted_obj[use_key] = use_value
+			})
+			return(sorted_obj)
+		} 
+		function shuffle(dict)
+		{
+		
+			filled_areas = new Array();
+			parent=document.getElementById("main");
+			while (parent.firstChild) {
+				parent.removeChild(parent.firstChild);
+			}
+			var animIndex = Math.floor(Math.random() * anim.length);
+			count=1
+			for (var k in dict) {
+				console.log(k)
+				var span = document.createElement("span");
+				var text = document.createTextNode(k);
+				var colourIndex = Math.floor(Math.random() * colours.length);
+				span.setAttribute("style","font-size: "+(dict[k]+10)+"px;color:"+colours[colourIndex]+";font-family: cursive;font-weight: bold;");
+				span.setAttribute("onmouseover","highlight(this)");
+				span.setAttribute("class","tooltip expand animated "+anim[animIndex]+"  animate__slower ");
+				span.setAttribute("id","word"+count);
+				count++;
+				span.appendChild(text);
+				parent.appendChild(span);
+				
+				total=total+=dict[k]
+			}
+			$('span').each(function(index) {
+			var rand_x=0;
+			var rand_y=0;
+			var area;
+			count=0
+			do {
+				console.log("doing")
+				rand_x = Math.round(min_x + ((max_x - min_x)*(Math.random() % 1)));
+				rand_y = Math.round(min_y + ((max_y - min_y)*(Math.random() % 1)));
 				if ((index+1)%5==0)
-					$(this).css({left:rand_x, top: rand_y,'writing-mode': 'vertical-rl'});
+				{
+					area = {x: rand_x, y: rand_y, width: $(this).height(), height: $(this).width()};
+				}
 				else
-					$(this).css({left:rand_x, top: rand_y});
-				});
-			}
+				{
+					area = {x: rand_x, y: rand_y, width: $(this).width(), height: $(this).height()};
+
+				}
+				count++;
+				if (count>1000)
+					break
+			} while(check_overlap(area));
 			
-			function shuffleColor()
-			{
-			
-				$('span').each(function(index) {
-					var colourIndex = Math.floor(Math.random() * colours.length);
-					$(this).css({'color':colours[colourIndex]});
-				});
-			}
+			filled_areas.push(area);
+			if ((index+1)%5==0)
+				$(this).css({left:rand_x, top: rand_y,'writing-mode': 'vertical-rl'});
+			else
+				$(this).css({left:rand_x, top: rand_y});
+			dragElement(document.getElementById("word"+(index+1)));
+
+			});
+		}
+		
+		function shuffleColor()
+		{
+		
+			$('span').each(function(index) {
+				var colourIndex = Math.floor(Math.random() * colours.length);
+				$(this).css({'color':colours[colourIndex]});
+			});
+		}
+		dragElement(document.getElementById("mydiv"));
+		function dragElement(elmnt) {
+		  var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+		  if (document.getElementById(elmnt.id + "header")) {
+			/* if present, the header is where you move the DIV from:*/
+			document.getElementById(elmnt.id + "header").onmousedown = dragMouseDown;
+		  } else {
+			/* otherwise, move the DIV from anywhere inside the DIV:*/
+			elmnt.onmousedown = dragMouseDown;
+		  }
+
+		  function dragMouseDown(e) {
+			e = e || window.event;
+			e.preventDefault();
+			// get the mouse cursor position at startup:
+			pos3 = e.clientX;
+			pos4 = e.clientY;
+			document.onmouseup = closeDragElement;
+			// call a function whenever the cursor moves:
+			document.onmousemove = elementDrag;
+		  }
+
+		  function elementDrag(e) {
+			e = e || window.event;
+			e.preventDefault();
+			// calculate the new cursor position:
+			pos1 = pos3 - e.clientX;
+			pos2 = pos4 - e.clientY;
+			pos3 = e.clientX;
+			pos4 = e.clientY;
+			// set the element's new position:
+			elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
+			elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+		  }
+
+		  function closeDragElement() {
+			/* stop moving when mouse button is released:*/
+			document.onmouseup = null;
+			document.onmousemove = null;
+		  }
+		}
 	</script>
 </html>
