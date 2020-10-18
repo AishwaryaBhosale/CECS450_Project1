@@ -24,4 +24,7 @@ python CECS450_Project1.py
 * New text can be given in the __Enter Text__ box. Click on generate to generate a new tag cloud. You can drag the words and place them wherever you like after generating the tag cloud.
 * The shuffle button can be used to shuffle all the words in the tag cloud. 
 * The shuffle colour button can be used to change the colours of the words in the tag cloud.
+## How it looks
+![cloud](cloud.png)
+
 
